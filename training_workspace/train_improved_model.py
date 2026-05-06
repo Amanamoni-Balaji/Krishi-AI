@@ -8,7 +8,7 @@ from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
 
 def train_improved_model():
     # Load data
-    df = pd.read_csv('final_training_data_with_cost.csv')
+    df = pd.read_csv('final_training_data.csv')
     
     # Features and Target
     # We need to encode categorical variables
@@ -22,10 +22,10 @@ def train_improved_model():
     
     # Numerical Features to Scale
     scaler = StandardScaler()
-    numerical_features = ['Area', 'Rainfall', 'Cost']
+    numerical_features = ['Area', 'Rainfall']
     df[numerical_features] = scaler.fit_transform(df[numerical_features])
     
-    X = df[['District_Encoded', 'Season_Encoded', 'Crop_Encoded', 'Area', 'Rainfall', 'Cost']]
+    X = df[['District_Encoded', 'Season_Encoded', 'Crop_Encoded', 'Area', 'Rainfall']]
     
     # Log Transform Target
     # Use log1p to handle zeros if any (though production shouldn't be zero usually)

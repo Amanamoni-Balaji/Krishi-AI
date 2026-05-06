@@ -1,0 +1,436 @@
+/* ── MLOps Dashboard ─────────────────────────────────────────────────────── */
+
+.mlops-container {
+    min-height: 100vh;
+    background: #EAE8DC;
+    position: relative;
+    overflow-x: hidden;
+    font-family: 'Lato', sans-serif;
+    color: #1A3C34;
+}
+
+/* ── Nav ─────────────────────────────────────────────────────────────────── */
+.mlops-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.2rem 2.5rem;
+    border-bottom: 1px solid rgba(26, 60, 52, 0.15);
+    position: relative;
+    z-index: 10;
+}
+
+.mlops-brand {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: #1A3C34;
+}
+
+.brand-sub {
+    font-weight: 400;
+    opacity: 0.6;
+    font-size: 0.95rem;
+}
+
+.back-btn, .refresh-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: none;
+    border: 1px solid rgba(26, 60, 52, 0.3);
+    color: #1A3C34;
+    font-size: 0.85rem;
+    padding: 0.4rem 0.9rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.2s;
+}
+
+.back-btn:hover, .refresh-btn:hover {
+    background: rgba(26, 60, 52, 0.08);
+}
+
+/* ── Title ───────────────────────────────────────────────────────────────── */
+.mlops-title-section {
+    padding: 2.5rem 2.5rem 0.5rem;
+    position: relative;
+    z-index: 10;
+}
+
+.mlops-headline {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.8rem;
+    font-weight: 700;
+    line-height: 1.1;
+    margin: 0 0 0.4rem;
+}
+
+.italic-accent {
+    font-style: italic;
+    color: #1A3C34;
+    opacity: 0.7;
+}
+
+.mlops-sub {
+    font-size: 0.95rem;
+    opacity: 0.6;
+    margin: 0;
+}
+
+/* ── Grid ────────────────────────────────────────────────────────────────── */
+.mlops-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    padding: 2rem 2.5rem 3rem;
+    position: relative;
+    z-index: 10;
+}
+
+@media (max-width: 768px) {
+    .mlops-grid { grid-template-columns: 1fr; }
+    .mlops-nav  { padding: 1rem 1.2rem; }
+    .mlops-title-section { padding: 1.5rem 1.2rem 0.5rem; }
+    .mlops-grid { padding: 1.5rem 1.2rem; }
+    .mlops-headline { font-size: 2rem; }
+}
+
+/* ── Cards ───────────────────────────────────────────────────────────────── */
+.mlops-card {
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(12px);
+    border-radius: 12px;
+    border: 1px solid rgba(26, 60, 52, 0.12);
+    padding: 1.5rem;
+    box-shadow: 0 2px 12px rgba(26, 60, 52, 0.07);
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #1A3C34;
+    margin-bottom: 1.2rem;
+    padding-bottom: 0.8rem;
+    border-bottom: 1px solid rgba(26, 60, 52, 0.1);
+}
+
+.skeleton-loader {
+    height: 120px;
+    background: linear-gradient(90deg, rgba(26,60,52,0.06) 25%, rgba(26,60,52,0.12) 50%, rgba(26,60,52,0.06) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite;
+    border-radius: 8px;
+}
+
+@keyframes shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.no-data {
+    font-size: 0.85rem;
+    opacity: 0.55;
+    font-style: italic;
+    margin: 0;
+}
+
+/* ── Model Health ────────────────────────────────────────────────────────── */
+.metric-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid rgba(26, 60, 52, 0.06);
+    font-size: 0.88rem;
+}
+
+.metric-label { opacity: 0.6; }
+.metric-value { font-weight: 600; }
+
+.badge {
+    background: #1A3C34;
+    color: #d4f058;
+    padding: 0.15rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+}
+
+.gauge-section { margin-top: 1rem; }
+
+.gauge-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.82rem;
+    margin-bottom: 0.4rem;
+    opacity: 0.7;
+}
+
+.gauge-value {
+    font-weight: 700;
+    opacity: 1;
+    color: #1A3C34;
+}
+
+.gauge-bar {
+    height: 8px;
+    background: rgba(26, 60, 52, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.gauge-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.8s ease;
+}
+
+.metrics-row {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.mini-metric {
+    flex: 1;
+    background: rgba(26, 60, 52, 0.05);
+    border-radius: 8px;
+    padding: 0.6rem 0.8rem;
+    text-align: center;
+}
+
+.mini-label { display: block; font-size: 0.72rem; opacity: 0.5; text-transform: uppercase; letter-spacing: 0.05em; }
+.mini-val   { display: block; font-size: 1.1rem; font-weight: 700; margin-top: 0.2rem; }
+
+/* ── Drift Detection ─────────────────────────────────────────────────────── */
+.drift-status-badge {
+    display: inline-block;
+    padding: 0.3rem 0.9rem;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.drift-status-badge.ok    { background: rgba(34, 197, 94, 0.15);  color: #15803d; }
+.drift-status-badge.warn  { background: rgba(245, 158, 11, 0.15); color: #b45309; }
+.drift-status-badge.alert { background: rgba(239, 68, 68, 0.15);  color: #b91c1c; }
+
+.drift-meta {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    font-size: 0.8rem;
+    opacity: 0.65;
+    margin-bottom: 1rem;
+}
+
+.drift-message {
+    font-size: 0.82rem;
+    opacity: 0.7;
+    font-style: italic;
+    margin: 0 0 1rem;
+}
+
+.feature-drift-list { display: flex; flex-direction: column; gap: 0.5rem; }
+
+.feature-drift-row {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    font-size: 0.85rem;
+}
+
+.feat-name { flex: 1; font-weight: 600; }
+.feat-pval { opacity: 0.55; font-size: 0.78rem; min-width: 60px; text-align: right; }
+
+.traffic-light {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.drift-ts {
+    font-size: 0.75rem;
+    opacity: 0.45;
+    margin: 1rem 0 0;
+}
+
+/* ── Prediction Stats ────────────────────────────────────────────────────── */
+.stat-summary {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.2rem;
+}
+
+.stat-pill {
+    flex: 1;
+    background: rgba(26, 60, 52, 0.06);
+    border-radius: 10px;
+    padding: 0.7rem;
+    text-align: center;
+}
+
+.stat-num { display: block; font-size: 1.6rem; font-weight: 700; }
+.stat-lbl { display: block; font-size: 0.72rem; opacity: 0.55; margin-top: 0.1rem; }
+
+.bar-chart { display: flex; flex-direction: column; gap: 0.5rem; }
+
+.bar-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.78rem;
+}
+
+.bar-label { width: 90px; opacity: 0.7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 0; }
+
+.bar-track {
+    flex: 1;
+    height: 8px;
+    background: rgba(26, 60, 52, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.bar-fill {
+    height: 100%;
+    background: #1A3C34;
+    border-radius: 4px;
+    transition: width 0.6s ease;
+}
+
+.bar-count { width: 24px; text-align: right; font-weight: 600; }
+
+.season-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 1rem;
+}
+
+.season-tag {
+    background: rgba(212, 240, 88, 0.3);
+    border: 1px solid rgba(212, 240, 88, 0.6);
+    color: #1A3C34;
+    font-size: 0.75rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 12px;
+    font-weight: 600;
+}
+
+/* ── Retrain Card ────────────────────────────────────────────────────────── */
+.retrain-desc {
+    font-size: 0.85rem;
+    opacity: 0.65;
+    line-height: 1.5;
+    margin: 0 0 1.2rem;
+}
+
+.retrain-desc code {
+    background: rgba(26, 60, 52, 0.08);
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+.pipeline-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin-bottom: 1.5rem;
+}
+
+.pipeline-step {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    font-size: 0.83rem;
+}
+
+.step-num {
+    width: 20px;
+    height: 20px;
+    background: #1A3C34;
+    color: #d4f058;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.step-name { opacity: 0.75; }
+
+.retrain-btn {
+    width: 100%;
+    padding: 0.85rem;
+    background: #1A3C34;
+    color: #d4f058;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: opacity 0.2s, transform 0.15s;
+    letter-spacing: 0.03em;
+}
+
+.retrain-btn:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
+.retrain-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.retrain-btn.loading  { opacity: 0.7; }
+
+.spin { animation: spin 1s linear infinite; }
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
+.retrain-result {
+    margin-top: 1rem;
+    padding: 0.8rem 1rem;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.retrain-result.success { background: rgba(34, 197, 94, 0.12);  color: #15803d; }
+.retrain-result.neutral { background: rgba(26, 60, 52, 0.07);   color: #1A3C34; }
+.retrain-result.error   { background: rgba(239, 68, 68, 0.12);  color: #b91c1c; }
+
+.retrain-reason { opacity: 0.7; font-style: italic; }
+
+/* ── Grid lines (from landing page) ─────────────────────────────────────── */
+.grid-lines {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    display: flex;
+    justify-content: space-between;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.grid-lines .line {
+    width: 1px;
+    height: 100%;
+    background: rgba(26, 60, 52, 0.08);
+}

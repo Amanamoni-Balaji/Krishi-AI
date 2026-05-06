@@ -45,6 +45,7 @@ const LandingPage = ({ language, setLanguage }) => {
                     </div>
                     <a href="#about">{t.about}</a>
                     <a href="#product">{t.product}</a>
+                    <a href="/mlops" style={{ fontWeight: 700, color: '#1A3C34', background: 'rgba(212,240,88,0.35)', padding: '0.25rem 0.75rem', borderRadius: '6px', textDecoration: 'none', fontSize: '0.85rem' }}>MLOps</a>
                 </div>
             </nav>
 

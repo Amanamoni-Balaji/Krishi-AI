@@ -5,6 +5,7 @@ import LandingPage from './pages/LandingPage';
 import MainTool from './pages/MainTool';
 import ResultsPage from './pages/ResultsPage';
 import ProAnalysisPage from './pages/ProAnalysisPage';
+import MLOpsDashboard from './pages/MLOpsDashboard';
 import './App.css';
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
                 <Route path="/app" element={<MainTool language={language} setLanguage={setLanguage} />} />
                 <Route path="/results" element={<ResultsPage language={language} setLanguage={setLanguage} />} />
                 <Route path="/pro-analysis" element={<ProAnalysisPage language={language} setLanguage={setLanguage} />} />
+                <Route path="/mlops" element={<MLOpsDashboard language={language} />} />
             </Routes>
         </div>
     );

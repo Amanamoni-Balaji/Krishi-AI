@@ -1,302 +1,367 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Sprout, CloudRain, Activity, MapPin, Droplets, Thermometer, ChevronRight, CheckCircle, Calendar, Lock, Unlock, ShoppingCart, Bug, TrendingUp, IndianRupee, Globe } from 'lucide-react';
+import { motion } from 'framer-motion';
+import {
+    Sprout, CloudRain, Activity, MapPin, Droplets, Thermometer,
+    ChevronRight, CheckCircle, TrendingUp, Globe
+} from 'lucide-react';
 import { translations } from '../utils/translations';
 import '../App.css';
 
 const ResultsPage = ({ language, setLanguage }) => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { prediction, erosionRisk, longForecast, aiAdvice, recommendation, formData, inputAreaAcres } = location.state || {};
-    const t = translations[language] || translations['en'];
+    const {
+        prediction, erosionRisk, longForecast, aiAdvice,
+        recommendation, monthlyForecast, formData,
+        inputAreaAcres, slopeInfo
+    } = location.state || {};
 
-    const [isProUnlocked, setIsProUnlocked] = useState(false);
+    const t = translations[language] || translations['en'];
     const [showPaymentModal, setShowPaymentModal] = useState(false);
 
-    // Redirect if no data (e.g., direct access)
     useEffect(() => {
-        if (!location.state) {
-            navigate('/app');
-        }
+        if (!location.state) navigate('/app');
     }, [location, navigate]);
-
-    const handleUnlockPro = () => {
-        // Simulate payment processing
-        setShowPaymentModal(true);
-        setTimeout(() => {
-            setShowPaymentModal(false);
-            // Navigate to Pro Page with all data
-            navigate('/pro-analysis', {
-                state: {
-                    prediction,
-                    erosionRisk,
-                    longForecast,
-                    aiAdvice,
-                    recommendation,
-                    formData
-                }
-            });
-        }, 2000);
-    };
 
     if (!location.state) return null;
 
-    // Calculate Weather Averages/Totals
-    const totalRainfall = longForecast ? longForecast.reduce((sum, day) => sum + day.rain, 0) : 0;
-    const avgTemp = longForecast ? Math.round(longForecast.reduce((sum, day) => sum + day.temp, 0) / longForecast.length) : 0;
-    const avgHumidity = longForecast ? Math.round(longForecast.reduce((sum, day) => sum + (day.humidity || 70), 0) / longForecast.length) : 70;
+    // Weather aggregates (from real Open-Meteo data)
+    const totalRainfall = longForecast
+        ? longForecast.reduce((s, d) => s + (d.rain || 0), 0).toFixed(1)
+        : 0;
+    const avgTemp = longForecast && longForecast.length
+        ? Math.round(longForecast.reduce((s, d) => s + d.temp, 0) / longForecast.length)
+        : '--';
+    const avgHumidity = longForecast && longForecast.length
+        ? Math.round(longForecast.reduce((s, d) => s + (d.humidity || 70), 0) / longForecast.length)
+        : '--';
 
-    // Convert Yield to Tons/Acre for display if input was in Acres
-    // Prediction comes as tons (total) and tons/ha (yield)
-    // We want to show tons/acre.
-    // 1 Ha = 2.47105 Acres.
-    // Yield (tons/ha) / 2.47105 = Yield (tons/acre)
-    const yieldPerAcre = prediction && prediction.yield ? prediction.yield / 2.47105 : 0;
+    // Yield display (model returns tons/ha; user entered acres)
+    const yieldPerAcre = prediction?.yield ? (prediction.yield / 2.47105).toFixed(2) : '0.00';
+    const totalProd    = prediction?.production ? prediction.production.toFixed(2) : '0.00';
+
+    // Slope display
+    const slopeDeg  = slopeInfo?.degrees || (formData?.slope === 'Steep' ? 25 : 10);
+    const slopeType = slopeInfo?.slope   || formData?.slope || 'Gentle';
+
+    const handleUnlockPro = () => {
+        setShowPaymentModal(true);
+        setTimeout(() => {
+            setShowPaymentModal(false);
+            navigate('/pro-analysis', {
+                state: {
+                    prediction, erosionRisk, longForecast, aiAdvice,
+                    recommendation, formData
+                }
+            });
+        }, 1800);
+    };
 
     return (
         <div className="app-container editorial-theme">
-            {/* Background Grid Lines */}
             <div className="grid-lines fixed">
-                <div className="line"></div>
-                <div className="line"></div>
-                <div className="line"></div>
-                <div className="line"></div>
+                <div className="line" /><div className="line" />
+                <div className="line" /><div className="line" />
             </div>
 
             <header className="app-header editorial-header">
-                <div className="brand" onClick={() => navigate('/')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div className="brand" onClick={() => navigate('/')}
+                    style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <Sprout size={32} color="#1A3C34" />
                     <h1 style={{ color: '#1A3C34', margin: 0, fontSize: '1.5rem' }}>{t.brand}</h1>
                 </div>
                 <div className="header-right" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <div className="lang-selector" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <Globe size={18} color="#1A3C34" />
-                        <select
-                            value={language}
-                            onChange={(e) => setLanguage(e.target.value)}
-                            style={{ border: 'none', background: 'transparent', fontSize: '0.9rem', color: '#1A3C34', cursor: 'pointer', fontWeight: 'bold' }}
-                        >
+                        <select value={language} onChange={(e) => setLanguage(e.target.value)}
+                            style={{ border: 'none', background: 'transparent', fontSize: '0.9rem',
+                                     color: '#1A3C34', cursor: 'pointer', fontWeight: 'bold' }}>
                             <option value="en">English</option>
                             <option value="hi">हिंदी</option>
                             <option value="kha">Khasi</option>
                         </select>
                     </div>
-                    <button className="editorial-btn-small" onClick={() => navigate('/app')}>{t.new_analysis}</button>
+                    <button className="editorial-btn-small" onClick={() => navigate('/app')}>
+                        {t.new_analysis || 'New Analysis'}
+                    </button>
                 </div>
             </header>
 
             <main className="main-content-dashboard relative-z">
                 <div className="dashboard-title">
-                    <h2>{t.results_title}</h2>
-                    <p>{t.results_subtitle} {formData?.district}</p>
+                    <h2>{t.results_title || 'Analysis Results'}</h2>
+                    <p>{t.results_subtitle || 'District:'} {formData?.district}</p>
                 </div>
 
-                <motion.div
-                    className="results-section"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                >
-                    {/* NEW: Yield Prediction Card (The "Actual Results") */}
+                <motion.div className="results-section"
+                    initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+
+                    {/* ── Yield Prediction Card ─────────────────────────────── */}
                     {prediction && (
-                        <div className="yield-card editorial-card" style={{ marginBottom: '2rem', borderLeft: '4px solid #1A3C34' }}>
-                            <div className="yield-header" style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
-                                <div className="icon-bg" style={{ background: '#e6f4f1', padding: '10px', borderRadius: '50%' }}>
+                        <div className="yield-card editorial-card"
+                            style={{ marginBottom: '2rem', borderLeft: '4px solid #1A3C34' }}>
+                            <div className="yield-header"
+                                style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+                                <div className="icon-bg"
+                                    style={{ background: '#e6f4f1', padding: '10px', borderRadius: '50%' }}>
                                     <TrendingUp size={24} color="#1A3C34" />
                                 </div>
                                 <div>
-                                    <h3 style={{ margin: 0, color: '#1A3C34' }}>{t.yield_prediction}</h3>
-                                    <span style={{ fontSize: '0.9rem', color: '#666' }}>{t.based_on_ml}</span>
+                                    <h3 style={{ margin: 0, color: '#1A3C34' }}>
+                                        {t.yield_prediction || 'ML Yield Prediction'}
+                                    </h3>
+                                    <span style={{ fontSize: '0.85rem', color: '#666' }}>
+                                        {formData?.crop} &nbsp;|&nbsp; {inputAreaAcres} acres &nbsp;|&nbsp;
+                                        Rainfall used: {prediction.rainfall_used} mm
+                                    </span>
                                 </div>
                             </div>
 
-                            <div className="yield-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
+                            <div className="yield-stats"
+                                style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1.5rem' }}>
                                 <div className="stat-box">
-                                    <span className="label" style={{ display: 'block', fontSize: '0.85rem', color: '#666', marginBottom: '0.25rem' }}>{t.est_yield}</span>
-                                    <span className="value" style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#1A3C34' }}>
-                                        {yieldPerAcre.toFixed(2)} <span style={{ fontSize: '1rem', fontWeight: 'normal' }}>tons/acre</span>
+                                    <span className="label"
+                                        style={{ display: 'block', fontSize: '0.85rem', color: '#666', marginBottom: '0.25rem' }}>
+                                        Yield
+                                    </span>
+                                    <span className="value"
+                                        style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#1A3C34' }}>
+                                        {yieldPerAcre}
+                                        <span style={{ fontSize: '1rem', fontWeight: 'normal' }}> t/acre</span>
                                     </span>
                                 </div>
                                 <div className="stat-box">
-                                    <span className="label" style={{ display: 'block', fontSize: '0.85rem', color: '#666', marginBottom: '0.25rem' }}>{t.total_prod}</span>
-                                    <span className="value" style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#1A3C34' }}>
-                                        {prediction.production ? prediction.production.toFixed(2) : '0.00'} <span style={{ fontSize: '1rem', fontWeight: 'normal' }}>tons</span>
+                                    <span className="label"
+                                        style={{ display: 'block', fontSize: '0.85rem', color: '#666', marginBottom: '0.25rem' }}>
+                                        Total Production
+                                    </span>
+                                    <span className="value"
+                                        style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#1A3C34' }}>
+                                        {totalProd}
+                                        <span style={{ fontSize: '1rem', fontWeight: 'normal' }}> tonnes</span>
                                     </span>
                                 </div>
-                                <div className="stat-box">
-                                    <span className="label" style={{ display: 'block', fontSize: '0.85rem', color: '#666', marginBottom: '0.25rem' }}>{t.est_cost}</span>
-                                    <span className="value" style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#1A3C34', display: 'flex', alignItems: 'center' }}>
-                                        <IndianRupee size={20} /> {prediction.estimated_cost ? prediction.estimated_cost.toLocaleString() : '0'}
-                                    </span>
-                                </div>
+                                {prediction.historical_context && (
+                                    <div className="stat-box">
+                                        <span className="label"
+                                            style={{ display: 'block', fontSize: '0.85rem', color: '#666', marginBottom: '0.25rem' }}>
+                                            Historical Avg Yield
+                                        </span>
+                                        <span className="value"
+                                            style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#555' }}>
+                                            {prediction.historical_context.avg_historical_yield}
+                                            <span style={{ fontSize: '0.9rem', fontWeight: 'normal' }}> t/ha</span>
+                                        </span>
+                                        <span style={{ fontSize: '0.75rem', color: '#888' }}>
+                                            from real crop records
+                                        </span>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}
 
-                    {/* Top Row: Erosion + Weather Grid */}
+                    {/* ── Weather + Erosion Row ─────────────────────────────── */}
                     <div className="results-top-row">
-                        {/* Erosion Card */}
                         {erosionRisk && (
-                            <div className="erosion-card editorial-card" style={{ background: erosionRisk.color === '#ef4444' ? '#fee2e2' : '#1A3C34', color: 'white' }}>
+                            <div className="erosion-card editorial-card"
+                                style={{ background: erosionRisk.color === '#ef4444' ? '#fee2e2' : '#1A3C34', color: 'white' }}>
                                 <div className="erosion-header">
-                                    <h3>{t.erosion_risk}</h3>
+                                    <h3>{t.erosion_risk || 'Erosion Risk'}</h3>
                                     <div className="risk-percentage">{erosionRisk.percentage}%</div>
                                     <div className="soil-badge">
-                                        <CheckCircle size={14} /> {erosionRisk.risk === 'Low' ? t.soil_stable : t.soil_unstable}
+                                        <CheckCircle size={14} />
+                                        {erosionRisk.risk === 'Low' || erosionRisk.risk === 'Minimal'
+                                            ? (t.soil_stable || 'Soil Stable')
+                                            : (t.soil_unstable || 'Soil at Risk')}
                                     </div>
                                 </div>
                                 <div className="recommendation-box">
-                                    <h4>{t.recommendation}</h4>
-                                    <p>{erosionRisk.risk === 'Low' ? t.cond_optimal : t.cond_risky} {erosionRisk.risk === 'Low' ? t.proceed_standard : t.proceed_caution}</p>
+                                    <h4>{t.recommendation || 'Recommendation'}</h4>
+                                    <p>
+                                        {erosionRisk.risk === 'Low' || erosionRisk.risk === 'Minimal'
+                                            ? (t.cond_optimal || 'Conditions are optimal.')
+                                            : (t.cond_risky || 'Implement erosion controls.')}
+                                        {' '}
+                                        {erosionRisk.risk === 'Low' || erosionRisk.risk === 'Minimal'
+                                            ? (t.proceed_standard || 'Proceed with standard practices.')
+                                            : (t.proceed_caution || 'Use contour bunding and cover crops.')}
+                                    </p>
                                 </div>
                             </div>
                         )}
 
-                        {/* Weather Grid */}
                         <div className="weather-grid-cards">
                             <div className="weather-stat-card editorial-card">
                                 <div className="stat-icon-bg"><CloudRain size={20} color="#3b82f6" /></div>
-                                <span className="stat-label">{t.rainfall}</span>
-                                <span className="stat-value">{totalRainfall}mm</span>
-                                <span className="stat-sub">Next 30 Days</span>
+                                <span className="stat-label">{t.rainfall || 'Rainfall'}</span>
+                                <span className="stat-value">{totalRainfall} mm</span>
+                                <span className="stat-sub">Next 14 Days (live)</span>
                             </div>
                             <div className="weather-stat-card editorial-card">
                                 <div className="stat-icon-bg"><MapPin size={20} color="#8b5cf6" /></div>
-                                <span className="stat-label">{t.hill_angle}</span>
-                                <span className="stat-value">{formData?.slope === 'Steep' ? '25°' : '10°'}</span>
-                                <span className="stat-sub">Slope Steepness</span>
+                                <span className="stat-label">{t.hill_angle || 'Slope'}</span>
+                                <span className="stat-value">{slopeDeg}°</span>
+                                <span className="stat-sub">{slopeType} terrain</span>
                             </div>
                             <div className="weather-stat-card editorial-card">
                                 <div className="stat-icon-bg"><Droplets size={20} color="#0ea5e9" /></div>
-                                <span className="stat-label">{t.humidity}</span>
+                                <span className="stat-label">{t.humidity || 'Humidity'}</span>
                                 <span className="stat-value">{avgHumidity}%</span>
-                                <span className="stat-sub">Atmospheric</span>
+                                <span className="stat-sub">14-day avg (live)</span>
                             </div>
                             <div className="weather-stat-card editorial-card">
                                 <div className="stat-icon-bg"><Thermometer size={20} color="#f97316" /></div>
-                                <span className="stat-label">{t.temperature}</span>
+                                <span className="stat-label">{t.temperature || 'Temp'}</span>
                                 <span className="stat-value">{avgTemp}°C</span>
-                                <span className="stat-sub">Moderate</span>
+                                <span className="stat-sub">14-day avg (live)</span>
                             </div>
                         </div>
                     </div>
 
-                    {/* Bottom Row: Advisory + Pro */}
+                    {/* ── Advisory + Monthly Forecast + Pro ────────────────── */}
                     <div className="results-bottom-row">
-                        {/* Advisory Card */}
-                        {aiAdvice && (
-                            <div className="advisory-card editorial-card">
-                                <div className="advisory-header">
-                                    <div className="advisory-icon-bg"><Sprout size={24} color="#1A3C34" /></div>
-                                    <h3>{t.ai_advisory}</h3>
-                                </div>
-
-                                <div className="advisory-item">
-                                    <div className="advisory-icon"><Sprout size={18} color="#1A3C34" /></div>
-                                    <div>
-                                        <span className="advisory-label">{t.best_crop}</span>
-                                        <div className="advisory-value">
-                                            {recommendation && recommendation.best_crop
-                                                ? `${recommendation.best_crop.crop} (Yield: ${(recommendation.best_crop.yield / 2.47105).toFixed(2)} t/acre)`
-                                                : `${formData?.crop} / Mixed Vegetables`
-                                            }
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                            {/* Advisory */}
+                            {aiAdvice && (
+                                <div className="advisory-card editorial-card">
+                                    <div className="advisory-header">
+                                        <div className="advisory-icon-bg">
+                                            <Sprout size={24} color="#1A3C34" />
                                         </div>
-                                    </div>
-                                </div>
-                                <div className="advisory-item">
-                                    <div className="advisory-icon"><Calendar size={18} color="#3b82f6" /></div>
-                                    <div>
-                                        <span className="advisory-label">{t.best_time}</span>
-                                        <div className="advisory-value">{aiAdvice.bestTime}</div>
-                                    </div>
-                                </div>
-                                <div className="advisory-item">
-                                    <div className="advisory-icon"><Activity size={18} color="#8b5cf6" /></div>
-                                    <div>
-                                        <span className="advisory-label">{t.fert_schedule}</span>
-                                        <div className="advisory-value">{aiAdvice.fertilizer}</div>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Pro Card (Dynamic) */}
-                        <div className={`pro-card editorial-card ${isProUnlocked ? 'unlocked' : ''}`}>
-                            {!isProUnlocked ? (
-                                <>
-                                    <div className="pro-badge">👑 {t.premium_access}</div>
-                                    <h3>{t.upgrade_pro}</h3>
-                                    <p>{t.unlock_desc}</p>
-
-                                    <div className="pro-features">
-                                        <div className="pro-feature">
-                                            <div className="pf-icon">🛒</div>
-                                            <span>{t.market_integration}</span>
-                                        </div>
-                                        <div className="pro-feature">
-                                            <div className="pf-icon">🐞</div>
-                                            <span>{t.pest_prediction}</span>
-                                        </div>
+                                        <h3>{t.ai_advisory || 'Advisory'}</h3>
                                     </div>
 
-                                    <div className="price-tag">
-                                        <div className="price">₹100 <span className="period">/ season</span></div>
-                                    </div>
-
-                                    <button className="pay-btn" onClick={handleUnlockPro}>
-                                        {showPaymentModal ? t.processing : t.pay_btn} <ChevronRight size={16} />
-                                    </button>
-                                </>
-                            ) : (
-                                <div className="pro-content-unlocked">
-                                    <div className="unlocked-header">
-                                        <div className="pro-badge" style={{ background: '#dcfce7', color: '#166534' }}>
-                                            <Unlock size={12} /> {t.premium_unlocked}
-                                        </div>
-                                    </div>
-
-                                    <div className="pro-grid">
-                                        <div className="pro-detail-card">
-                                            <div className="pro-icon-header">
-                                                <Bug size={24} color="#ef4444" />
-                                                <h4>{t.pest_alert}</h4>
-                                            </div>
-                                            <p className="alert-text">High risk of <strong>Stem Borer</strong> in next 10 days due to humidity.</p>
-                                            <div className="action-box">
-                                                <span>{t.rec_action}</span>
-                                                <p>Apply Neem Oil 5% spray immediately.</p>
+                                    <div className="advisory-item">
+                                        <div className="advisory-icon"><Sprout size={18} color="#1A3C34" /></div>
+                                        <div>
+                                            <span className="advisory-label">Best Crop Recommendation</span>
+                                            <div className="advisory-value">
+                                                {recommendation?.best_crop
+                                                    ? `${recommendation.best_crop.crop} — ` +
+                                                      `${(recommendation.best_crop.yield / 2.47105).toFixed(2)} t/acre predicted yield`
+                                                    : formData?.crop}
                                             </div>
                                         </div>
+                                    </div>
 
-                                        <div className="pro-detail-card">
-                                            <div className="pro-icon-header">
-                                                <ShoppingCart size={24} color="#f59e0b" />
-                                                <h4>{t.market_rates}</h4>
+                                    {recommendation?.recommendations?.length > 1 && (
+                                        <div className="advisory-item">
+                                            <div className="advisory-icon"><Activity size={18} color="#8b5cf6" /></div>
+                                            <div>
+                                                <span className="advisory-label">Top 5 Alternative Crops</span>
+                                                <div className="advisory-value" style={{ fontSize: '0.85rem', color: '#444' }}>
+                                                    {recommendation.recommendations.map(r =>
+                                                        `${r.crop} (${(r.yield / 2.47105).toFixed(2)} t/acre)`
+                                                    ).join(' · ')}
+                                                </div>
                                             </div>
-                                            <ul className="market-list">
-                                                <li>
-                                                    <span>Shillong Mandi</span>
-                                                    <span className="rate">₹2,400/q</span>
-                                                </li>
-                                                <li>
-                                                    <span>Tura Market</span>
-                                                    <span className="rate">₹2,250/q</span>
-                                                </li>
-                                                <li>
-                                                    <span>Guwahati</span>
-                                                    <span className="rate">₹2,550/q</span>
-                                                </li>
-                                            </ul>
                                         </div>
+                                    )}
+
+                                    {aiAdvice.alerts?.length > 0 && (
+                                        <div className="advisory-item">
+                                            <div className="advisory-icon"><CloudRain size={18} color="#ef4444" /></div>
+                                            <div>
+                                                <span className="advisory-label">Weather Alerts (live forecast)</span>
+                                                {aiAdvice.alerts.slice(0, 3).map((alert, idx) => (
+                                                    <div key={idx} className="advisory-value"
+                                                        style={{ color: '#ef4444', fontSize: '0.85rem', marginTop: '0.25rem' }}>
+                                                        ⚠ {alert}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {aiAdvice.crop_advice && (
+                                        <div className="advisory-item">
+                                            <div className="advisory-icon"><Activity size={18} color="#1A3C34" /></div>
+                                            <div>
+                                                <span className="advisory-label">About {formData?.crop}</span>
+                                                <div className="advisory-value"
+                                                    style={{ fontSize: '0.85rem', color: '#444', lineHeight: '1.5' }}>
+                                                    {aiAdvice.crop_advice.slice(0, 300)}
+                                                    {aiAdvice.crop_advice.length > 300 ? '...' : ''}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Monthly Rainfall Forecast (from real CSV) */}
+                            {monthlyForecast && monthlyForecast.length > 0 && (
+                                <div className="editorial-card" style={{ padding: '1.5rem' }}>
+                                    <h3 style={{ margin: '0 0 1rem 0', color: '#1A3C34', fontSize: '1rem' }}>
+                                        6-Month Rainfall Forecast — {formData?.district}
+                                    </h3>
+                                    <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                                        {monthlyForecast.map((m, i) => (
+                                            <div key={i} style={{
+                                                flex: '1 1 80px', background: '#f0f7f4',
+                                                borderRadius: '8px', padding: '0.75rem',
+                                                textAlign: 'center', minWidth: '70px'
+                                            }}>
+                                                <div style={{ fontWeight: 'bold', color: '#1A3C34', fontSize: '0.9rem' }}>
+                                                    {m.month}
+                                                </div>
+                                                <div style={{ fontSize: '1.1rem', fontWeight: '700', color: '#0ea5e9' }}>
+                                                    {m.rainfall} mm
+                                                </div>
+                                                <div style={{
+                                                    fontSize: '0.7rem', marginTop: '0.25rem',
+                                                    color: m.erosion_risk === 'High' ? '#ef4444'
+                                                         : m.erosion_risk === 'Moderate' ? '#f59e0b' : '#10b981'
+                                                }}>
+                                                    {m.erosion_risk} risk
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
                             )}
+                        </div>
+
+                        {/* Pro Upgrade Card */}
+                        <div className="pro-card editorial-card">
+                            <div className="pro-badge">👑 {t.premium_access || 'Premium'}</div>
+                            <h3>{t.upgrade_pro || 'Upgrade to Pro'}</h3>
+                            <p>{t.unlock_desc || 'Get deeper insights powered by your real data.'}</p>
+
+                            <div className="pro-features">
+                                <div className="pro-feature">
+                                    <div className="pf-icon">📈</div>
+                                    <span>Market price estimates from crop yield + MSP data</span>
+                                </div>
+                                <div className="pro-feature">
+                                    <div className="pf-icon">🐞</div>
+                                    <span>Pest risk forecast from live weather patterns</span>
+                                </div>
+                                <div className="pro-feature">
+                                    <div className="pf-icon">🌱</div>
+                                    <span>Soil nutrient recommendations per crop</span>
+                                </div>
+                                <div className="pro-feature">
+                                    <div className="pf-icon">📅</div>
+                                    <span>Crop calendar from your sowing date</span>
+                                </div>
+                            </div>
+
+                            <div className="price-tag">
+                                <div className="price">₹100 <span className="period">/ season</span></div>
+                            </div>
+
+                            <button className="pay-btn" onClick={handleUnlockPro}>
+                                {showPaymentModal ? 'Processing...' : (t.pay_btn || 'Unlock Pro')}
+                                <ChevronRight size={16} />
+                            </button>
                         </div>
                     </div>
                 </motion.div>
             </main>
 
-            {/* Simple Payment Modal Overlay */}
             {showPaymentModal && (
                 <div className="payment-overlay">
                     <div className="payment-spinner"></div>
